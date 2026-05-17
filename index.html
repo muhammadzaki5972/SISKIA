@@ -64,7 +64,10 @@
             height: 142.85%; 
             transform: scale(0.75); 
             transform-origin: 0 0;
-            transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+            position: absolute; /* Menggunakan absolute agar bisa digeser posisinya secara fisik */
+            left: 0;
+            top: 0;
+            transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out, left 0.2s ease-out;
         }
 
         /* Teknik Clipping Atas dan Bawah untuk menyembunyikan Judul & Footer asli Google Sheet */
@@ -260,6 +263,7 @@
     <!-- AREA VIEWPORT IFRAME GOOGLE SPREADSHEET -->
     <main class="main-viewport container-fluid p-0 overflow-hidden">
         <div id="clipper-area" class="sheet-clipper">
+            <!-- Kontainer Iframe yang akan digeser posisinya -->
             <div id="iframe-container" class="iframe-container">
                 <iframe id="sheet-iframe" 
                         src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSt1cTTBArr5wk5NDZ_rDQSiuOSH1fo4y-L2pgX1GB0n8bHrlB2B1ZQ2yMkURNWk5VNSonRWVmOpU-a/pubhtml?gid=117707246&amp;single=true&amp;widget=true&amp;headers=false">
@@ -279,10 +283,10 @@
     <div class="floating-controls">
         <!-- Wadah Tombol-Tombol Anak (Tersembunyi secara default) -->
         <div id="menu-items" class="menu-items">
-            <!-- Tombol Navigasi Horizontal (Diberi id & status disabled awal) -->
+            <!-- Tombol Navigasi Horizontal -->
             <div class="scroll-controls-row">
-                <button id="btn-scroll-left" onclick="scrollHorizontally(-200)" class="btn btn-zoom btn-circle" disabled>&#11013;</button>
-                <button id="btn-scroll-right" onclick="scrollHorizontally(200)" class="btn btn-zoom btn-circle" disabled>&#11157;</button>
+                <button id="btn-scroll-left" onclick="scrollSheetHorizontally(200)" class="btn btn-zoom btn-circle" disabled>&#11013;</button>
+                <button id="btn-scroll-right" onclick="scrollSheetHorizontally(-200)" class="btn btn-zoom btn-circle" disabled>&#11157;</button>
             </div>
             
             <button onclick="triggerZoomIn(0.05)" class="btn btn-zoom">Perbesar</button>
@@ -298,9 +302,10 @@
     <!-- SCRIPT FUNGSI LAYOUT & KONTROL INTERAKTIF -->
     <script>
         let currentScale = 0.71; 
-        let isScrollActive = false; // Flag status aktif tombol geser
+        let currentLeftPosition = 0; // Menyimpan koordinat pergeseran horizontal frame
+        let isScrollActive = false; 
+        
         const container = document.getElementById('iframe-container');
-        const clipperArea = document.getElementById('clipper-area');
         const btnLeft = document.getElementById('btn-scroll-left');
         const btnRight = document.getElementById('btn-scroll-right');
 
@@ -311,7 +316,7 @@
             container.style.transform = `scale(${currentScale})`;
         }
 
-        // Fungsi pemicu khusus saat tombol "Perbesar" ditekan
+        // Pemicu khusus saat tombol "Perbesar" ditekan
         function triggerZoomIn(delta) {
             changeZoom(delta);
             
@@ -331,9 +336,12 @@
         function resetZoom() {
             currentScale = 0.71; 
             updateLayout();
-            if (clipperArea) clipperArea.scrollLeft = 0; 
             
-            // Kunci kembali fungsi tombol kiri/kanan saat di-reset (paskan)
+            // Reset posisi pergeseran sheet kembali ke koordinat awal (0)
+            currentLeftPosition = 0;
+            container.style.left = "0px";
+            
+            // Kunci kembali fungsi tombol kiri/kanan
             isScrollActive = false;
             btnLeft.setAttribute('disabled', 'true');
             btnRight.setAttribute('disabled', 'true');
@@ -346,13 +354,19 @@
             }
         }
 
-        function scrollHorizontally(amount) {
-            // Hanya izinkan geser jika tombol sudah di-trigger oleh Perbesar
-            if (isScrollActive && clipperArea) {
-                clipperArea.scrollBy({
-                    left: amount,
-                    behavior: 'smooth'
-                });
+        // Fungsi Pembaruan: Menggeser element container iframe secara fisik di dalam clipper web
+        function scrollSheetHorizontally(amount) {
+            if (isScrollActive) {
+                // Kalkulasi posisi koordinat left baru
+                currentLeftPosition += amount;
+                
+                // Mencegah pergeseran kebablasan ke arah kiri melampaui batas awal dokumen sheet
+                if (currentLeftPosition > 0) {
+                    currentLeftPosition = 0;
+                }
+                
+                // Terapkan pergeseran lewat CSS left style secara smooth
+                container.style.left = currentLeftPosition + "px";
             }
         }
 
