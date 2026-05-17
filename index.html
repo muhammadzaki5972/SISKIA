@@ -71,7 +71,7 @@
         .sheet-clipper {
             width: 100%;
             height: 100%;
-            overflow: hidden;
+            overflow: hidden; /* Mengatur scroll horizontal via JS */
             position: relative;
         }
 
@@ -136,6 +136,14 @@
             transform: translateY(0);
         }
 
+        /* Kontainer khusus untuk menyandingkan tombol Kiri & Kanan */
+        .scroll-controls-row {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            width: 100%;
+        }
+
         /* Desain Umum Tombol */
         .btn-zoom {
             background: #0d3b66;
@@ -157,6 +165,23 @@
             transform: scale(1.05);
         }
 
+        /* Desain Khusus Tombol Bulat Kiri/Kanan */
+        .btn-circle {
+            min-width: 55px;
+            height: 55px;
+            padding: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #1abc9c; /* Warna Toska cerah untuk pembeda fungsi navigasi */
+        }
+        
+        .btn-circle:hover {
+            background: #16a085;
+        }
+
         .btn-paskan {
             background: #f39c12; 
         }
@@ -173,7 +198,7 @@
 
         /* Desain Tombol Utama (Buka/Tutup) */
         .btn-trigger {
-            background: #4a69f0; /* Hijau segar penanda tombol utama interaktif */
+            background: #4a69f0; 
             border: 2px solid #92f2fc !important;
             min-width: 120px;
         }
@@ -184,13 +209,13 @@
         }
         /* Style warna saat tombol berubah fungsi menjadi "Tutup" */
         .btn-trigger.active {
-            background: #f5bab8;         /* Merah muda saat mode tutup terbuka */
+            background: #f5bab8;         
             border: 2px solid #ffffff !important;
             box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
         }
         .btn-trigger.active:hover {
-            background: #f5d6ba;    /* Orange muda saat mode cursor mouse */
-            color: #000000 !important;    /* Tulisan saat mode cursor mouse */
+            background: #f5d6ba;    
+            color: #000000 !important;    
             border: 2px solid #ffffff !important;
         }
 
@@ -203,6 +228,7 @@
             .logo-garuda { height: 40px; }
             .floating-controls { bottom: 40px; right: 15px; }
             .btn-zoom { padding: 8px 15px; min-width: 105px; font-size: 0.8rem; }
+            .btn-circle { min-width: 47px; height: 47px; font-size: 1rem; }
         }
     </style>
 </head>
@@ -223,7 +249,7 @@
 
     <!-- AREA VIEWPORT IFRAME GOOGLE SPREADSHEET -->
     <main class="main-viewport container-fluid p-0 overflow-hidden">
-        <div class="sheet-clipper">
+        <div id="clipper-area" class="sheet-clipper">
             <div id="iframe-container" class="iframe-container">
                 <iframe id="sheet-iframe" 
                         src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSt1cTTBArr5wk5NDZ_rDQSiuOSH1fo4y-L2pgX1GB0n8bHrlB2B1ZQ2yMkURNWk5VNSonRWVmOpU-a/pubhtml?gid=117707246&amp;single=true&amp;widget=true&amp;headers=false">
@@ -243,6 +269,12 @@
     <div class="floating-controls">
         <!-- Wadah Tombol-Tombol Anak (Tersembunyi secara default) -->
         <div id="menu-items" class="menu-items">
+            <!-- Tombol Navigasi Horizontal Baru (Kiri & Kanan) -->
+            <div class="scroll-controls-row">
+                <button onclick="scrollHorizontally(-200)" class="btn btn-zoom btn-circle">&#11013;</button>
+                <button onclick="scrollHorizontally(200)" class="btn btn-zoom btn-circle">&#11157;</button>
+            </div>
+            
             <button onclick="changeZoom(0.05)" class="btn btn-zoom">Perbesar</button>
             <button onclick="resetZoom()" class="btn btn-zoom btn-paskan">Paskan</button>
             <button onclick="changeZoom(-0.05)" class="btn btn-zoom">Perkecil</button>
@@ -250,14 +282,14 @@
         </div>
         
         <!-- Tombol Utama Pemicu Buka/Tutup -->
-        <button id="fab-trigger" onclick="toggleMenu()" class="btn btn-zoom btn-trigger">&#x1f6e0 Alat
-        </button>
+        <button id="fab-trigger" onclick="toggleMenu()" class="btn btn-zoom btn-trigger">&#x1f6e0; Alat</button>
     </div>
 
     <!-- SCRIPT FUNGSI LAYOUT & KONTROL INTERAKTIF -->
     <script>
         let currentScale = 0.71; 
         const container = document.getElementById('iframe-container');
+        const clipperArea = document.getElementById('clipper-area');
 
         function updateLayout() {
             let ukuranPersen = (100 / currentScale) + "%";
@@ -274,6 +306,7 @@
         function resetZoom() {
             currentScale = 0.71; 
             updateLayout();
+            if (clipperArea) clipperArea.scrollLeft = 0; // Reset scroll horizontal saat klik paskan
         }
 
         function scrollToTop() {
@@ -283,22 +316,29 @@
             }
         }
 
-        // Fungsi Baru: Manajemen Buka/Tutup Menu Pembungkus Tombol
+        // Fungsi Baru: Menggeser Konten Secara Horizontal
+        function scrollHorizontally(amount) {
+            if (clipperArea) {
+                clipperArea.scrollBy({
+                    left: amount,
+                    behavior: 'smooth' // Membuat efek transisi pergeseran menjadi halus
+                });
+            }
+        }
+
+        // Manajemen Buka/Tutup Menu Pembungkus Tombol
         function toggleMenu() {
             const menuItems = document.getElementById('menu-items');
             const fabTrigger = document.getElementById('fab-trigger');
             
-            // Periksa apakah menu sedang terbuka atau tertutup
             if (menuItems.classList.contains('show')) {
-                // Proses Menutup Menu
                 menuItems.classList.remove('show');
                 fabTrigger.classList.remove('active');
-                fabTrigger.innerHTML = '&#x1f6e0 Alat'; // Kembali ke tulisan Buka + Hamburger menu
+                fabTrigger.innerHTML = '&#x1f6e0; Alat'; 
             } else {
-                // Proses Membuka Menu
                 menuItems.classList.add('show');
                 fabTrigger.classList.add('active');
-                fabTrigger.innerHTML = '&#10060 Tutup'; // Berubah menjadi tulisan Tutup + Simbol X
+                fabTrigger.innerHTML = '&#10060; Tutup'; 
             }
         }
 
