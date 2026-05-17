@@ -67,11 +67,11 @@
             transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
         }
 
-        /* UPDATE: Teknik Mengambang untuk Native Scrollbar Tepat di Atas Footer */
+        /* Native Scrollbar Tepat di Atas Footer */
         .sheet-clipper {
             width: 100%;
             height: 100%;
-            overflow-x: auto;  /* Mengaktifkan scrollbar horizontal bawaan browser */
+            overflow-x: auto;  /* Mengaktifkan scrollbar horizontal */
             overflow-y: hidden; /* Menyembunyikan scrollbar vertikal ganda */
             position: relative;
         }
@@ -87,19 +87,19 @@
 
         /* KUSTOMISASI DESAIN SCROLLER BAR (Senada dengan Tema Website) */
         .sheet-clipper::-webkit-scrollbar {
-            height: 12px; /* Ketebalan scroller bar */
+            height: 12px; 
         }
         .sheet-clipper::-webkit-scrollbar-track {
-            background: #f1f1f1; /* Warna latar jalur scroller */
+            background: #f1f1f1; 
             box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
         }
         .sheet-clipper::-webkit-scrollbar-thumb {
-            background: linear-gradient(90deg, #0d3b66 0%, #0077b6 100%); /* Warna gradasi disamakan dengan Header & Footer */
+            background: linear-gradient(90deg, #0d3b66 0%, #0077b6 100%); 
             border-radius: 6px;
             border: 2px solid #f1f1f1;
         }
         .sheet-clipper::-webkit-scrollbar-thumb:hover {
-            background: #0d3b66; /* Warna saat kursor mengarah ke scroller */
+            background: #0d3b66; 
         }
 
         /* Footer Baru */
@@ -127,7 +127,7 @@
         /* Struktur Pembungkus Kontrol Utama (Pojok Kanan Bawah) */
         .floating-controls {
             position: fixed;
-            bottom: 45px; /* Tetap mengambang aman di atas scroller bar baru */
+            bottom: 45px; 
             right: 30px;
             display: flex;
             flex-direction: column;
@@ -154,6 +154,14 @@
             transform: translateY(0);
         }
 
+        /* Kontainer khusus untuk menyandingkan tombol Kiri & Kanan */
+        .scroll-controls-row {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            width: 100%;
+        }
+
         /* Desain Umum Tombol */
         .btn-zoom {
             background: #0d3b66;
@@ -173,6 +181,33 @@
             background: #0077b6;
             color: white;
             transform: scale(1.05);
+        }
+
+        /* Desain Khusus Tombol Bulat Kiri/Kanan */
+        .btn-circle {
+            min-width: 55px;
+            height: 55px;
+            padding: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #1abc9c; 
+            transition: all 0.3s ease;
+        }
+        
+        .btn-circle:hover:not([disabled]) {
+            background: #16a085;
+        }
+
+        /* Gaya visual ketika tombol Kiri/Kanan dalam posisi terkunci (Disabled) */
+        .btn-circle[disabled] {
+            background: #7f8c8d !important;
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none;
         }
 
         .btn-paskan {
@@ -221,6 +256,7 @@
             .logo-garuda { height: 40px; }
             .floating-controls { bottom: 45px; right: 15px; }
             .btn-zoom { padding: 8px 15px; min-width: 105px; font-size: 0.8rem; }
+            .btn-circle { min-width: 47px; height: 47px; font-size: 1rem; }
         }
     </style>
 </head>
@@ -241,8 +277,7 @@
 
     <!-- AREA VIEWPORT IFRAME GOOGLE SPREADSHEET -->
     <main class="main-viewport container-fluid p-0 overflow-hidden">
-        <!-- Elemen ini memunculkan scroller bar tepat di atas footer website -->
-        <div class="sheet-clipper">
+        <div id="clipper-area" class="sheet-clipper">
             <div id="iframe-container" class="iframe-container">
                 <iframe id="sheet-iframe" 
                         src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSt1cTTBArr5wk5NDZ_rDQSiuOSH1fo4y-L2pgX1GB0n8bHrlB2B1ZQ2yMkURNWk5VNSonRWVmOpU-a/pubhtml?gid=117707246&amp;single=true&amp;widget=true&amp;headers=false">
@@ -260,9 +295,15 @@
 
     <!-- SISTEM TOMBOL NAVIGASI HAMBURGER (FAB) -->
     <div class="floating-controls">
-        <!-- Wadah Tombol-Tombol Anak (Tersembunyi secara default) -->
+        <!-- Wadah Tombol-Tombol Anak -->
         <div id="menu-items" class="menu-items">
-            <button onclick="changeZoom(0.05)" class="btn btn-zoom">Perbesar</button>
+            <!-- SINKRONISASI TOMBOL BARU: Tombol Bulat Kiri dan Kanan Terintegrasi -->
+            <div class="scroll-controls-row">
+                <button id="btn-scroll-left" onclick="scrollNativeBar(-200)" class="btn btn-zoom btn-circle" disabled>&#11013;</button>
+                <button id="btn-scroll-right" onclick="scrollNativeBar(200)" class="btn btn-zoom btn-circle" disabled>&#11157;</button>
+            </div>
+            
+            <button onclick="triggerZoomIn(0.05)" class="btn btn-zoom">Perbesar</button>
             <button onclick="resetZoom()" class="btn btn-zoom btn-paskan">Paskan</button>
             <button onclick="changeZoom(-0.05)" class="btn btn-zoom">Perkecil</button>
             <button onclick="scrollToTop()" class="btn btn-zoom btn-top">&#9650; Ke Atas</button>
@@ -275,14 +316,28 @@
     <!-- SCRIPT FUNGSI LAYOUT & KONTROL INTERAKTIF -->
     <script>
         let currentScale = 0.71; 
+        let isScrollActive = false; 
+        
         const container = document.getElementById('iframe-container');
-        const clipper = document.querySelector('.sheet-clipper');
+        const clipperArea = document.getElementById('clipper-area');
+        const btnLeft = document.getElementById('btn-scroll-left');
+        const btnRight = document.getElementById('btn-scroll-right');
 
         function updateLayout() {
             let ukuranPersen = (100 / currentScale) + "%";
             container.style.width = ukuranPersen;
             container.style.height = ukuranPersen;
             container.style.transform = `scale(${currentScale})`;
+        }
+
+        // Aktifkan fungsi tombol kiri & kanan hanya jika tombol Perbesar ditekan
+        function triggerZoomIn(delta) {
+            changeZoom(delta);
+            if (!isScrollActive) {
+                isScrollActive = true;
+                btnLeft.removeAttribute('disabled');
+                btnRight.removeAttribute('disabled');
+            }
         }
 
         function changeZoom(delta) {
@@ -293,10 +348,14 @@
         function resetZoom() {
             currentScale = 0.71; 
             updateLayout();
-            // Kembalikan posisi geser scroller bar horizontal ke paling kiri saat dipaskan
-            if (clipper) {
-                clipper.scrollLeft = 0;
-            }
+            
+            // Kembalikan native scroller bar posisi horizontal ke paling kiri (awal)
+            if (clipperArea) clipperArea.scrollLeft = 0;
+            
+            // Mengunci kembali tombol bulat
+            isScrollActive = false;
+            btnLeft.setAttribute('disabled', 'true');
+            btnRight.setAttribute('disabled', 'true');
         }
 
         function scrollToTop() {
@@ -306,7 +365,17 @@
             }
         }
 
-        // Fungsi: Manajemen Buka/Tutup Menu Pembungkus Tombol
+        // FUNGSI SINKRONISASI: Menggeser native scrollbar web secara horizontal lewat klik tombol button
+        function scrollNativeBar(amount) {
+            if (isScrollActive && clipperArea) {
+                clipperArea.scrollBy({
+                    left: amount,
+                    behavior: 'smooth' // Transisi pergeseran bar berjalan mulus
+                });
+            }
+        }
+
+        // Manajemen Buka/Tutup Menu Pembungkus Tombol
         function toggleMenu() {
             const menuItems = document.getElementById('menu-items');
             const fabTrigger = document.getElementById('fab-trigger');
