@@ -181,10 +181,10 @@
         }
         /* Style warna saat tombol berubah fungsi menjadi "Tutup" */
         .btn-trigger.active {
-            background: #ffffff; /* Abu-abu gelap elegan saat mode tutup terbuka */
+            background: #f5bab8; /* Merah muda saat mode tutup terbuka */
         }
         .btn-trigger.active:hover {
-            background: #2c3e50;
+            background: #f5d6ba;    /* Orange muda saat mode cursor mouse */
         }
 
         /* Penyesuaian Responsif Layar Kecil (Mobile) */
@@ -286,7 +286,7 @@
                 // Proses Menutup Menu
                 menuItems.classList.remove('show');
                 fabTrigger.classList.remove('active');
-                fabTrigger.innerHTML = '&#x1f6e0 Alat;'; // Kembali ke tulisan Buka + Hamburger menu
+                fabTrigger.innerHTML = '&#x1f6e0 Alat'; // Kembali ke tulisan Buka + Hamburger menu
             } else {
                 // Proses Membuka Menu
                 menuItems.classList.add('show');
