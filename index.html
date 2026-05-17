@@ -6,7 +6,7 @@
     <title>SISKIA - Komisi Informasi Aceh</title>
     <!-- Memanggil Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" href="SIS.png" type="image/png">
+    <link class="js-meta-favicon" rel="icon" href="SIS.png" type="image/png">
 
     <style>
         /* Reset total agar full screen */
@@ -148,6 +148,18 @@
             background: #e67e22;
         }
 
+        /* Tombol Kembali ke Atas */
+        .btn-top {
+            background: #e74c3c; /* Warna Merah tegas untuk membedakan fungsi */
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-top:hover {
+            background: #c0392b;
+            color: white;
+        }
+
         /* Penyesuaian Responsif Layar Kecil (Mobile) */
         @media (max-width: 768px) {
             .custom-header { height: 70px; }
@@ -197,16 +209,17 @@
     <div class="floating-controls">
         <button onclick="changeZoom(0.05)" class="btn btn-zoom mb-2">Perbesar</button>
         <button onclick="resetZoom()" class="btn btn-zoom btn-paskan mb-2">Paskan</button>
-        <button onclick="changeZoom(-0.05)" class="btn btn-zoom">Perkecil</button>
+        <button onclick="changeZoom(-0.05)" class="btn btn-zoom mb-2">Perkecil</button>
+        <!-- Tombol Baru Berada di Pojok Paling Bawah -->
+        <button onclick="scrollToTop()" class="btn btn-zoom btn-top">&#9650; Ke Atas</button>
     </div>
 
-    <!-- SCRIPT FUNGSI ZOOM (PENGGANTI FILE JAVASCRIPT GAS) -->
+    <!-- SCRIPT FUNGSI LAYOUT & CONTROL -->
     <script>
         let currentScale = 0.71; // Skala awal (71%)
         const container = document.getElementById('iframe-container');
 
         function updateLayout() {
-            // Menghitung lebar dan tinggi yang sesuai agar tidak ada ruang kosong saat zoom
             let ukuranPersen = (100 / currentScale) + "%";
             container.style.width = ukuranPersen;
             container.style.height = ukuranPersen;
@@ -214,7 +227,6 @@
         }
 
         function changeZoom(delta) {
-            // Membatasi zoom minimal 40% dan maksimal 150%
             currentScale = Math.max(0.4, Math.min(1.5, currentScale + delta));
             updateLayout();
         }
@@ -224,11 +236,18 @@
             updateLayout();
         }
 
+        // Fungsi khusus pengembalian ke posisi atas untuk Google Sheets Iframe
+        function scrollToTop() {
+            const iframe = document.getElementById('sheet-iframe');
+            if (iframe) {
+                iframe.src = iframe.src; // Memicu refresh instan iframe
+            }
+        }
+
         // Jalankan layout awal saat web dimuat
         updateLayout();
     </script>
     
-    <!-- Memanggil script.js eksternal Anda (jika ada logika API di sana) -->
     <script src="script.js"></script>
 </body>
 </html>
