@@ -64,32 +64,16 @@
             height: 142.85%; 
             transform-origin: 0 0;
             position: relative;
-            /* Transisi untuk kehalusan perubahan skala (zoom) */
             transition: transform 0.25s ease-out, width 0.2s ease-out, height 0.2s ease-out;
         }
 
-        /* Teknik Clipping Atas dan Bawah & Manajemen Scroll Bar Bottom */
+        /* UPDATE: Teknik Clipping diubah agar memunculkan scrollbar horizontal asli di atas footer */
         .sheet-clipper {
             width: 100%;
             height: 100%;
-            overflow-y: hidden; /* Sembunyikan scroll vertikal website */
-            overflow-x: auto;   /* AKTIFKAN SCROLL BAR BOTTOM */
+            overflow-x: auto;  /* AKTIFKAN: Memunculkan native scrollbar horizontal jika konten melebar */
+            overflow-y: hidden; /* Sembunyikan scrollbar vertikal ganda */
             position: relative;
-        }
-
-        /* Kustomisasi Tampilan Scroll Bar Bottom agar Selaras dengan Tema */
-        .sheet-clipper::-webkit-scrollbar {
-            height: 10px; /* Tinggi scrollbar horizontal */
-        }
-        .sheet-clipper::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .sheet-clipper::-webkit-scrollbar-thumb {
-            background: #0077b6; /* Warna biru senada gradasi */
-            border-radius: 5px;
-        }
-        .sheet-clipper::-webkit-scrollbar-thumb:hover {
-            background: #0d3b66;
         }
 
         #sheet-iframe {
@@ -99,6 +83,21 @@
             margin-bottom: -35px;      
             border: none;
             display: block;
+        }
+
+        /* Kustomisasi gaya visual Native Scrollbar agar serasi dengan tema website */
+        .sheet-clipper::-webkit-scrollbar {
+            height: 10px; /* Tinggi batang scrollbar horizontal */
+        }
+        .sheet-clipper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .sheet-clipper::-webkit-scrollbar-thumb {
+            background: #0077b6; /* Warna biru senada dengan tema header/footer */
+            border-radius: 5px;
+        }
+        .sheet-clipper::-webkit-scrollbar-thumb:hover {
+            background: #0d3b66;
         }
 
         /* Footer Baru */
@@ -134,7 +133,7 @@
             z-index: 1100;
         }
 
-        /* Pembungkus menu tombol anak */
+        /* Pembungkus menu tombol anak yang akan disembunyikan/ditampilkan */
         .menu-items {
             display: flex;
             flex-direction: column;
@@ -298,7 +297,9 @@
         <div id="menu-items" class="menu-items">
             <!-- Tombol Navigasi Horizontal -->
             <div class="scroll-controls-row">
+                <!-- Menggeser pandangan ke Kiri (-200px) -->
                 <button id="btn-scroll-left" onclick="scrollSheetHorizontally(-200)" class="btn btn-zoom btn-circle" disabled>&#11013;</button>
+                <!-- Menggeser pandangan ke Kanan (200px) -->
                 <button id="btn-scroll-right" onclick="scrollSheetHorizontally(200)" class="btn btn-zoom btn-circle" disabled>&#11157;</button>
             </div>
             
@@ -350,7 +351,7 @@
             currentScale = 0.71; 
             updateLayout();
             
-            // Kembalikan posisi scrollbar bawah ke pojok kiri awal (0)
+            // Kembalikan posisi native scrollbar ke posisi paling kiri awal (0)
             if (clipperArea) clipperArea.scrollLeft = 0;
             
             // Kunci kembali fungsi tombol kiri/kanan
@@ -366,12 +367,12 @@
             }
         }
 
-        // Fungsi Baru Berbasis Native Scroll Browser: Menggeser isi sheet sekaligus menggerakkan scroll bar bottom
+        // UPDATE LOGIKA: Sekarang fungsi ini mengontrol pergeseran pada native scrollbar website
         function scrollSheetHorizontally(amount) {
             if (isScrollActive && clipperArea) {
                 clipperArea.scrollBy({
                     left: amount,
-                    behavior: 'smooth' // Efek pergeseran halus
+                    behavior: 'smooth' // Membuat pergeseran scrollbar berjalan halus
                 });
             }
         }
