@@ -181,11 +181,14 @@
         }
         /* Style warna saat tombol berubah fungsi menjadi "Tutup" */
         .btn-trigger.active {
-            background: #f5bab8; /* Merah muda saat mode tutup terbuka */
+            background: #f5bab8;         /* Merah muda saat mode tutup terbuka */
+            border: 2px solid #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
         }
         .btn-trigger.active:hover {
             background: #f5d6ba;    /* Orange muda saat mode cursor mouse */
             color: #000000 !important;    /* Tulisan saat mode cursor mouse */
+            border: 2px solid #ffffff !important;
         }
 
         /* Penyesuaian Responsif Layar Kecil (Mobile) */
@@ -215,7 +218,7 @@
         </div>
     </header>
 
-    <!-- AREA VIEWPORT IFRAME -->
+    <!-- AREA VIEWPORT IFRAME GOOGLE SPREADSHEET -->
     <main class="main-viewport container-fluid p-0 overflow-hidden">
         <div class="sheet-clipper">
             <div id="iframe-container" class="iframe-container">
@@ -229,7 +232,7 @@
     <!-- FOOTER -->
     <footer class="fixed-bottom custom-footer">
         <div class="footer-text">
-            © 2026 Komisi Informasi Aceh - Sistem Informasi Sengketa (SISKIA). All Rights Reserved.
+            Komisi Informasi Aceh © 2026. All Rights Reserved.
         </div>
     </footer>
 
