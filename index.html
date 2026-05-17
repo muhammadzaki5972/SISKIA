@@ -62,12 +62,12 @@
         .iframe-container {
             width: 142.85%;  
             height: 142.85%; 
-            transform-origin: 0 0;
             position: absolute;
             left: 0;
             top: 0;
-            /* Transisi ditambahkan untuk kehalusan scale dan pergeseran koordinat X */
-            transition: transform 0.25s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+            /* Transform-origin dikendalikan dinamis lewat JS, transisi dibuat smooth */
+            transform-origin: 0% 0%;
+            transition: transform 0.25s ease-out, width 0.2s ease-out, height 0.2s ease-out, transform-origin 0.25s ease-out;
         }
 
         /* Teknik Clipping Atas dan Bawah untuk menyembunyikan Judul & Footer asli Google Sheet */
@@ -263,7 +263,6 @@
     <!-- AREA VIEWPORT IFRAME GOOGLE SPREADSHEET -->
     <main class="main-viewport container-fluid p-0 overflow-hidden">
         <div id="clipper-area" class="sheet-clipper">
-            <!-- Kontainer Iframe yang akan dimanipulasi transform transformasinya -->
             <div id="iframe-container" class="iframe-container">
                 <iframe id="sheet-iframe" 
                         src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSt1cTTBArr5wk5NDZ_rDQSiuOSH1fo4y-L2pgX1GB0n8bHrlB2B1ZQ2yMkURNWk5VNSonRWVmOpU-a/pubhtml?gid=117707246&amp;single=true&amp;widget=true&amp;headers=false">
@@ -285,10 +284,9 @@
         <div id="menu-items" class="menu-items">
             <!-- Tombol Navigasi Horizontal -->
             <div class="scroll-controls-row">
-                <!-- Klik Kiri berarti menggeser pandangan sheet ke Kiri (Isi kontainer bergerak positif ke Kanan) -->
-                <button id="btn-scroll-left" onclick="scrollSheetHorizontally(150)" class="btn btn-zoom btn-circle" disabled>&#11013;</button>
-                <!-- Klik Kanan berarti menggeser pandangan sheet ke Kanan (Isi kontainer bergerak negatif ke Kiri) -->
-                <button id="btn-scroll-right" onclick="scrollSheetHorizontally(-150)" class="btn btn-zoom btn-circle" disabled>&#11157;</button>
+                <!-- Logika Baru: Mengubah titik pusat origin sumbu X (Kiri: kurangi persentase, Kanan: tambah persentase) -->
+                <button id="btn-scroll-left" onclick="moveTransformOrigin(-15)" class="btn btn-zoom btn-circle" disabled>&#11013;</button>
+                <button id="btn-scroll-right" onclick="moveTransformOrigin(15)" class="btn btn-zoom btn-circle" disabled>&#11157;</button>
             </div>
             
             <button onclick="triggerZoomIn(0.05)" class="btn btn-zoom">Perbesar</button>
@@ -304,26 +302,25 @@
     <!-- SCRIPT FUNGSI LAYOUT & KONTROL INTERAKTIF -->
     <script>
         let currentScale = 0.71; 
-        let currentXOffset = 0; // Menyimpan nilai pergeseran dalam satuan Pixel
+        let currentXOrigin = 0; // Menggunakan koordinat persentase (0% - 100%) untuk melintasi sheet
         let isScrollActive = false; 
         
         const container = document.getElementById('iframe-container');
         const btnLeft = document.getElementById('btn-scroll-left');
         const btnRight = document.getElementById('btn-scroll-right');
 
-        // Menggabungkan scale dan translateX agar fungsi berjalan bersamaan tanpa saling menimpa
         function updateLayout() {
             let ukuranPersen = (100 / currentScale) + "%";
             container.style.width = ukuranPersen;
             container.style.height = ukuranPersen;
-            container.style.transform = `scale(${currentScale}) translateX(${currentXOffset}px)`;
+            container.style.transform = `scale(${currentScale})`;
+            // Mengatur jangkar secara dinamis berdasarkan pergerakan tombol
+            container.style.transformOrigin = `${currentXOrigin}% 0%`;
         }
 
-        // Pemicu khusus saat tombol "Perbesar" ditekan
         function triggerZoomIn(delta) {
             changeZoom(delta);
             
-            // Aktifkan fungsi dan visual tombol kiri/kanan
             if (!isScrollActive) {
                 isScrollActive = true;
                 btnLeft.removeAttribute('disabled');
@@ -338,10 +335,9 @@
 
         function resetZoom() {
             currentScale = 0.71; 
-            currentXOffset = 0; // Kembalikan posisi geser ke tengah awal
+            currentXOrigin = 0; // Mengembalikan jangkar visual ke pojok kiri 0%
             updateLayout();
             
-            // Kunci kembali fungsi tombol kiri/kanan
             isScrollActive = false;
             btnLeft.setAttribute('disabled', 'true');
             btnRight.setAttribute('disabled', 'true');
@@ -354,15 +350,18 @@
             }
         }
 
-        // Fungsi Inti Baru: Menggeser sheet menggunakan koordinat X matriks transformasi (X-Axis Translation)
-        function scrollSheetHorizontally(amount) {
+        /* 
+           LOGIKA UTAMA BARU: 
+           Mengubah titik fokus zoom (transform-origin) secara horizontal.
+           Mampu menggeser isi data sheet terjauh (100% lebar sheet) tanpa tertahan pembungkus CSS.
+        */
+        function moveTransformOrigin(percentageAmount) {
             if (isScrollActive) {
-                currentXOffset += amount;
+                currentXOrigin += percentageAmount;
                 
-                // Batasan agar tidak bisa digeser melebihi margin kiri awal data sheet
-                if (currentXOffset > 0) {
-                    currentXOffset = 0;
-                }
+                // Membatasi pergerakan dari batas minimum 0% hingga batas maksimum kanan dokumen 100%
+                if (currentXOrigin < 0) currentXOrigin = 0;
+                if (currentXOrigin > 100) currentXOrigin = 100;
                 
                 updateLayout();
             }
