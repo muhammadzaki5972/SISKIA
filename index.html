@@ -4,12 +4,164 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SISKIA - Komisi Informasi Aceh</title>
+    <!-- Memanggil Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <?!= HtmlService.createHtmlOutputFromFile('CSS').getContent(); ?>
+    <style>
+        /* Reset total agar full screen */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; 
+            background-color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Header Bergradasi & Beku */
+        .custom-header {
+            background: linear-gradient(90deg, #0d3b66 0%, #0077b6 100%);
+            height: 85px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 0 20px;
+        }
+
+        /* Logo Garuda Custom */
+        .logo-garuda {
+            height: 55px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* Teks SISKIA Putih */
+        .main-title {
+            color: #ffffff !important;
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .sub-title {
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        /* Area Konten Utama - Dikurangi tinggi Header (85px) dan Footer (30px) */
+        .main-viewport {
+            position: relative;
+            top: 85px; 
+            height: calc(100vh - 115px);
+            width: 100%;
+        }
+
+        /* Container Iframe dengan Tampilan Skala Awal 70% Penuh (100 / 0.7 = 142.85%) */
+        .iframe-container {
+            width: 142.85%;  
+            height: 142.85%; 
+            transform: scale(0.7); 
+            transform-origin: 0 0;
+            transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+        }
+
+        /* Teknik Clipping Atas dan Bawah untuk menyembunyikan Judul & Footer asli Google Sheet */
+        .sheet-clipper {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #sheet-iframe {
+            width: 100%;
+            /* Menambah tinggi frame untuk memotong area atas 30px dan bawah 35px */
+            height: calc(100% + 65px); 
+            margin-top: -30px;         /* Potong judul atas */
+            margin-bottom: -35px;      /* Potong footer bar bawah */
+            border: none;
+            display: block;
+        }
+
+        /* Footer Baru: Menggunakan Warna Gradasi yang Sama dengan Header */
+        .custom-footer {
+            background: linear-gradient(90deg, #0d3b66 0%, #0077b6 100%);
+            height: 30px;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+            display: table; /* Digunakan bersama table-cell untuk middle-align murni */
+            width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Pengaturan teks footer: 8px, warna abu-abu, text-center, middle-align */
+        .footer-text {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 8px;
+            color: #b0c4de; 
+            font-family: Arial, sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tombol Mengambang */
+        .floating-controls {
+            position: fixed;
+            bottom: 45px; /* Dinaikkan sedikit agar tidak menabrak footer kustom baru */
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            z-index: 1100;
+        }
+
+        .btn-zoom {
+            background: #0d3b66;
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            min-width: 110px;
+            font-size: 0.9rem;
+        }
+
+        .btn-zoom:hover {
+            background: #0077b6;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Tombol Paskan dengan warna aksen pembeda */
+        .btn-paskan {
+            background: #f39c12; /* Warna Oranye Amber hangat untuk kontrol reset */
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn-paskan:hover {
+            background: #e67e22;
+        }
+
+        /* Penyesuaian Responsif Layar Kecil (Mobile) */
+        @media (max-width: 768px) {
+            .custom-header { height: 70px; }
+            .main-viewport { top: 70px; height: calc(100vh - 100px); }
+            .main-title { font-size: 1.5rem; }
+            .sub-title { font-size: 0.7rem; }
+            .logo-garuda { height: 40px; }
+            .floating-controls { bottom: 40px; right: 15px; }
+            .btn-zoom { padding: 8px 15px; min-width: 95px; font-size: 0.8rem; }
+        }
+    </style>
 </head>
 <body>
 
+    <!-- HEADER -->
     <header class="fixed-top custom-header d-flex align-items-center">
         <div class="container-fluid d-flex align-items-center">
             <img src="https://www.freepnglogos.com/uploads/logo-garuda-png/garuda-buku-pembangunan-desa-kementrian-desa-pdtt-2.png" 
@@ -22,9 +174,10 @@
         </div>
     </header>
 
+    <!-- AREA VIEWPORT IFRAME -->
     <main class="main-viewport container-fluid p-0 overflow-hidden">
-        <div id="iframe-container" class="iframe-container">
-            <div class="sheet-clipper">
+        <div class="sheet-clipper">
+            <div id="iframe-container" class="iframe-container">
                 <iframe id="sheet-iframe" 
                         src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSt1cTTBArr5wk5NDZ_rDQSiuOSH1fo4y-L2pgX1GB0n8bHrlB2B1ZQ2yMkURNWk5VNSonRWVmOpU-a/pubhtml?gid=117707246&amp;single=true&amp;widget=true&amp;headers=false">
                 </iframe>
@@ -32,18 +185,49 @@
         </div>
     </main>
 
+    <!-- FOOTER -->
     <footer class="fixed-bottom custom-footer">
         <div class="footer-text">
             © 2026 Komisi Informasi Aceh - Sistem Informasi Sengketa (SISKIA). All Rights Reserved.
         </div>
     </footer>
 
+    <!-- TOMBOL NAVIGASI CONTROLS -->
     <div class="floating-controls">
         <button onclick="changeZoom(0.05)" class="btn btn-zoom mb-2">Perbesar</button>
         <button onclick="resetZoom()" class="btn btn-zoom btn-paskan mb-2">Paskan</button>
         <button onclick="changeZoom(-0.05)" class="btn btn-zoom">Perkecil</button>
     </div>
 
-    <?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
+    <!-- SCRIPT FUNGSI ZOOM (PENGGANTI FILE JAVASCRIPT GAS) -->
+    <script>
+        let currentScale = 0.7; // Skala awal (70%)
+        const container = document.getElementById('iframe-container');
+
+        function updateLayout() {
+            // Menghitung lebar dan tinggi yang sesuai agar tidak ada ruang kosong saat zoom
+            let ukuranPersen = (100 / currentScale) + "%";
+            container.style.width = ukuranPersen;
+            container.style.height = ukuranPersen;
+            container.style.transform = `scale(${currentScale})`;
+        }
+
+        function changeZoom(delta) {
+            // Membatasi zoom minimal 40% dan maksimal 150%
+            currentScale = Math.max(0.4, Math.min(1.5, currentScale + delta));
+            updateLayout();
+        }
+
+        function resetZoom() {
+            currentScale = 0.7; // Kembalikan ke 70%
+            updateLayout();
+        }
+
+        // Jalankan layout awal saat web dimuat
+        updateLayout();
+    </script>
+    
+    <!-- Memanggil script.js eksternal Anda (jika ada logika API di sana) -->
+    <script src="script.js"></script>
 </body>
 </html>
