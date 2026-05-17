@@ -181,7 +181,7 @@
         }
         /* Style warna saat tombol berubah fungsi menjadi "Tutup" */
         .btn-trigger.active {
-            background: #34495e; /* Abu-abu gelap elegan saat mode tutup terbuka */
+            background: #ffffff; /* Abu-abu gelap elegan saat mode tutup terbuka */
         }
         .btn-trigger.active:hover {
             background: #2c3e50;
@@ -243,7 +243,7 @@
         </div>
         
         <!-- Tombol Utama Pemicu Buka/Tutup -->
-        <button id="fab-trigger" onclick="toggleMenu()" class="btn btn-zoom btn-trigger">&#x2692 Alat;
+        <button id="fab-trigger" onclick="toggleMenu()" class="btn btn-zoom btn-trigger">&#x1f6e0 Alat
         </button>
     </div>
 
@@ -286,12 +286,12 @@
                 // Proses Menutup Menu
                 menuItems.classList.remove('show');
                 fabTrigger.classList.remove('active');
-                fabTrigger.innerHTML = '&#x2692 Alat;'; // Kembali ke tulisan Buka + Hamburger menu
+                fabTrigger.innerHTML = '&#x1f6e0 Alat;'; // Kembali ke tulisan Buka + Hamburger menu
             } else {
                 // Proses Membuka Menu
                 menuItems.classList.add('show');
                 fabTrigger.classList.add('active');
-                fabTrigger.innerHTML = '&#10060 Tutup;'; // Berubah menjadi tulisan Tutup + Simbol X
+                fabTrigger.innerHTML = '&#10060 Tutup'; // Berubah menjadi tulisan Tutup + Simbol X
             }
         }
 
